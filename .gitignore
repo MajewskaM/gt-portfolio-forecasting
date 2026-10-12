@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+data/cache/
+.ipynb_checkpoints/
+.venv/
+*.egg-info/
+# wyniki prób na danych sztucznych (--synthetic)
+results/*_synthetic/
