@@ -10,10 +10,6 @@ Miary dywersyfikacji:
 - współczynnik dywersyfikacji DR = sum_i w_i*sigma_i / sigma_p
     DR=1 gdy aktywa są idealnie skorelowane, rośnie wraz z dywersyfikacją;
     1/DR to część "średniej" zmienności, która zostaje po agregacji - bezpośrednio związane z hipotezą H1 (agregacja redukuje szum),
-- efektywna liczba niezależnych czynników N_eff = N^2 / sum(lambda_k^2)
-    współczynnik uczestnictwa wartości własnych macierzy korelacji;
-    N_eff=1 przy pełnej korelacji,
-    N_eff=N przy braku korelacji,
 - maksymalna waga sektora (metadane z universe.py),
 - maksymalne obsunięcie (max drawdown) portfela buy-and-hold.
 """
@@ -113,8 +109,6 @@ def portfolio_diagnostics(
     n = len(cols)
     iu = np.triu_indices(n, k=1)
     avg_corr = float(corr[iu].mean()) if n > 1 else float("nan")
-    lam = np.linalg.eigvalsh(corr)
-    n_eff = float(n**2 / np.sum(lam**2))
     # buy-and-hold - stała liczba jednostek z pierwszego dnia
     growth = (1 + r).cumprod()
     value = growth @ w
@@ -129,7 +123,6 @@ def portfolio_diagnostics(
         "max_pairwise_corr": float(corr[iu].max()) if n > 1 else float("nan"),
         "ann_vol_portfolio_%": 100 * vol_p,
         "diversification_ratio": float(w @ vol_i) / vol_p,
-        "effective_n_factors": n_eff,
         "max_sector_weight": max(sector_w.values()) if sector_w else float("nan"),
         "max_drawdown_%": 100 * max_drawdown(value),
     }
