@@ -1,0 +1,6 @@
+,n_assets,avg_pairwise_corr,max_pairwise_corr,ann_vol_portfolio_%,diversification_ratio,effective_n_factors,max_sector_weight,max_drawdown_%
+diversified_9,9.0,0.273,0.848,16.902,1.507,3.408,0.2,-24.742
+tech_heavy,5.0,0.826,0.929,27.864,1.082,1.336,0.5,-29.561
+defensive,5.0,0.157,0.651,12.725,1.568,3.128,0.25,-17.071
+commodities_tilted,5.0,0.429,0.929,17.019,1.368,2.21,0.35,-23.042
+ref_equal_weight_all_eligible,25.0,0.339,0.964,16.236,1.535,3.949,0.16,-25.857

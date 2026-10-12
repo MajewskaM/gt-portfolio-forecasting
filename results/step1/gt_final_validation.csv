@@ -1,0 +1,13 @@
+ticker,final_keyword,status,failing_criteria,replacement,zero_share,median_to_peak,reliability,corr_with_context,corr_context_robust
+AAPL,AAPL stock,OK,-,,0.0,0.23,1.0,,
+GLD,gold price,OK,-,,0.0,0.4,1.0,,
+GOOGL,Google stock,OK,-,,0.0,0.2,1.0,,
+JNJ,JNJ stock,OK,-,,0.0,0.24,0.998,,
+JPM,JPM stock,OK,-,,0.0,0.27,1.0,,
+MSFT,MSFT stock,OK,-,,0.0,0.32,0.995,,
+PG,Procter & Gamble stock,OK,-,,0.0,0.37,1.0,,
+QQQ,QQQ etf,OK,-,,0.0,0.42,1.0,,
+SLV,silver price,OK,-,,0.0,0.14,1.0,,
+SPY,SPY etf,OK,-,,0.0,0.21,1.0,,
+TLT,treasury yield,OK,-,,0.0,0.159,1.0,,
+XOM,XOM stock,OK,-,,0.0,0.31,1.0,,

@@ -1,0 +1,26 @@
+ticker,kind,asset_class,sector,ann_vol_%,median_dollar_volume_M,mean_dollar_volume_M,max_to_median_volume,obs_share,passes_coverage,passes_liquidity,eligible,avg_corr_to_others,in_greedy_selection,presets
+AAPL,stock,equity,Information Technology,34.422,10476.899,11251.525,4.027,1.0,True,True,True,0.433,False,"diversified_9,tech_heavy"
+AGG,etf,bond,aggregate,5.907,519.558,576.828,4.417,1.0,True,True,True,0.172,True,
+AMZN,stock,equity,Consumer Discretionary,33.855,9619.739,10558.209,4.153,1.0,True,True,True,0.338,False,
+DIA,etf,equity,broad,22.982,958.77,1160.502,9.817,1.0,True,True,True,0.531,False,
+EEM,etf,equity,broad,24.138,1908.698,2072.366,3.721,1.0,True,True,True,0.452,False,
+EFA,etf,equity,broad,20.817,1369.665,1523.581,4.575,1.0,True,True,True,0.504,False,
+GLD,etf,commodity,gold,15.285,1368.136,1588.216,6.628,1.0,True,True,True,0.14,True,"diversified_9,defensive,commodities_tilted"
+GOOGL,stock,equity,Communication Services,30.99,2679.422,3062.95,6.741,1.0,True,True,True,0.429,False,tech_heavy
+IEF,etf,bond,treasuries,6.664,525.587,610.941,6.66,1.0,True,True,True,-0.071,True,
+IWM,etf,equity,small-cap,28.378,4212.099,4586.596,3.87,1.0,True,True,True,0.475,False,
+JNJ,stock,equity,Health Care,21.245,883.262,962.759,3.549,1.0,True,True,True,0.346,True,"diversified_9,defensive"
+JPM,stock,equity,Financials,34.932,1381.538,1559.242,5.304,1.0,True,True,True,0.38,False,diversified_9
+KO,stock,equity,Consumer Staples,23.606,624.04,700.337,4.701,1.0,True,True,True,0.394,False,
+LQD,etf,bond,credit,10.944,1305.612,1412.155,4.258,1.0,True,True,True,0.272,True,
+MSFT,stock,equity,Information Technology,31.146,5677.44,6088.623,4.544,1.0,True,True,True,0.463,True,"diversified_9,tech_heavy,commodities_tilted"
+PG,stock,equity,Consumer Staples,22.802,780.388,868.485,5.003,1.0,True,True,True,0.371,False,"diversified_9,defensive"
+QQQ,etf,equity,broad-growth,26.564,10092.433,12494.965,6.759,1.0,True,True,True,0.503,False,"tech_heavy,commodities_tilted"
+SLV,etf,commodity,silver,30.687,436.169,535.72,17.216,1.0,True,True,True,0.207,False,commodities_tilted
+SPY,etf,equity,broad,22.456,23324.366,27689.556,4.456,1.0,True,True,True,0.548,False,"diversified_9,tech_heavy,defensive,commodities_tilted"
+TLT,etf,bond,treasuries,16.873,1427.327,1593.384,7.28,1.0,True,True,True,-0.101,True,"diversified_9,defensive"
+USO,etf,commodity,oil,48.008,262.782,320.264,12.49,1.0,True,True,True,0.193,False,
+VNQ,etf,real_estate,REIT,26.309,355.129,391.436,4.282,1.0,True,True,True,0.481,False,
+WMT,stock,equity,Consumer Staples,23.126,835.817,953.533,6.617,1.0,True,True,True,0.275,True,
+XLU,etf,equity,Utilities,24.03,741.978,826.093,6.142,1.0,True,True,True,0.42,False,
+XOM,stock,equity,Energy,36.787,906.805,1094.185,6.0,1.0,True,True,True,0.314,True,diversified_9
