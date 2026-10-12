@@ -1,0 +1,7 @@
+keyword,typ,w_sygnale,status,failing_criteria,zero_share,median_to_peak,reliability,corr_with_signal
+stock market,macro_word,True,OK,-,0.0,0.14,1.0,0.997
+S&P 500,macro_word,True,OK,-,0.0,0.25,1.0,0.921
+recession,macro_word,False,NIE SPEŁNIA,median_to_peak,0.0,0.061,1.0,0.501
+inflation,macro_word,False,OK,-,0.0,0.232,1.0,0.051
+stock market crash,macro_word,False,OK,-,0.0,0.11,1.0,0.916
+stock market + S&P 500,macro_signal,True,OK,-,0.0,0.161,1.0,1.0

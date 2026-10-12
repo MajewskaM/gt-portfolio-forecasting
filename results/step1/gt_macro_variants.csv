@@ -1,0 +1,7 @@
+ticker,keyword,variant_type,in_signal,n_pulls,n_points,zero_share,mean_svi,median_svi,median_to_peak,cv,reliability,corr_with_context,corr_context_robust,corr_with_signal,n_weeks_train,ok_zero_share,ok_median_to_peak,ok_reliability,ok_unambiguous,eligible
+MACRO,stock market,macro_word,True,2,183,0.0,16.497,14.0,0.14,0.633,1.0,,,0.997,183,True,True,True,True,True
+MACRO,S&P 500,macro_word,True,2,183,0.0,26.863,25.0,0.25,0.443,1.0,,,0.921,183,True,True,True,True,True
+MACRO,recession,macro_word,False,2,183,0.0,10.311,6.0,0.061,1.233,1.0,,,0.501,183,True,False,True,True,False
+MACRO,inflation,macro_word,False,2,183,0.0,20.246,16.0,0.232,0.564,1.0,,,0.051,183,True,True,True,True,True
+MACRO,stock market crash,macro_word,False,2,183,0.0,12.65,11.0,0.11,0.746,1.0,,,0.916,183,True,True,True,True,True
+MACRO,stock market + S&P 500,macro_signal,True,2,183,0.0,21.311,19.0,0.161,0.582,1.0,,,1.0,183,True,True,True,True,True

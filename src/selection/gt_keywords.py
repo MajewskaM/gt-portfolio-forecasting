@@ -25,7 +25,11 @@ import numpy as np
 import pandas as pd
 
 from src.data.acquisition import DataAcquisition, DataAcquisitionError
-from src.selection.gt_candidates import PRIORITY_ORDER, candidate_keywords
+from src.selection.gt_candidates import (
+    MACRO_CANDIDATES,
+    PRIORITY_ORDER,
+    candidate_keywords,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -259,6 +263,171 @@ def threshold_sensitivity(
                 "n_NO_GT": int(sel.isna().sum()),
                 "n_zmienionych_vs_bazowe": len(changed),
                 "zmienione": ",".join(changed),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+# hasła makro
+def investigate_macro(
+    acq: DataAcquisition,
+    final_keywords: List[str],
+    n_repeats: int = 2,
+    train_frac: float = 0.70,
+    allow_network: bool = True,
+) -> pd.DataFrame:
+    """Jakość danych haseł sygnału makro, tymi samymi wskaźnikami co dla aktywów
+    (udział zer, mediana/szczyt, niezawodność test-retest na tygodniach zbioru treningowego).
+    Wiersze:
+    - każde hasło z MACRO_CANDIDATES pobrane osobno (>= n_repeats niezależnych pobrań);
+    - sam sygnał makro, czyli suma haseł `final_keywords` pobranych w jednym zapytaniu (zeby miec wspólna skala z GT),
+    tak jak jest używany w modelu (FeatureSet.WITH_GT_MACRO).
+    - corr_with_signal mówi, jak blisko sygnału makro jest dane hasło- korelacja
+    Pearsona między tygodniową serią SVI danego hasła a serią sygnału makro, czyli sumą 'stock market' i 'S&P 500' z jednego zapytania
+    """
+
+    def pull(keywords: List[str], signal: bool) -> List[pd.Series]:
+        out: List[pd.Series] = []
+        for r in range(n_repeats):
+            try:
+                if signal:
+                    out.append(
+                        acq.fetch_gt_series(
+                            keywords, "MACRO", repeat=r, allow_network=allow_network
+                        ).astype(float)
+                    )
+                else:
+                    out.append(
+                        acq.fetch_gt_frame(
+                            keywords, repeat=r, allow_network=allow_network
+                        )
+                        .iloc[:, 0]
+                        .astype(float)
+                    )
+            except DataAcquisitionError as exc:
+                logger.warning(
+                    "[MACRO] %s (powt. %d) niedostępne: %s", keywords, r, exc
+                )
+                break
+        return out
+
+    signal_pulls = pull(list(final_keywords), signal=True)
+    signal_ref = _train_weeks(signal_pulls[0], train_frac) if signal_pulls else None
+
+    cands = list(dict.fromkeys(list(MACRO_CANDIDATES) + list(final_keywords)))
+    items = [(kw, "macro_word", [kw]) for kw in cands]
+    items.append((" + ".join(final_keywords), "macro_signal", None))
+    rows = []
+    for kw, kind, _ in items:
+        s_list = signal_pulls if kind == "macro_signal" else pull([kw], signal=False)
+        row = {
+            "ticker": "MACRO",
+            "keyword": kw,
+            "variant_type": kind,
+            "in_signal": kind == "macro_signal" or kw in final_keywords,
+            "n_pulls": len(s_list),
+        }
+        if not s_list:
+            row["status"] = "NO_DATA"
+            rows.append(row)
+            continue
+        s0 = _train_weeks(s_list[0], train_frac)
+        row.update(svi_quality(s0))
+        row["reliability"] = (
+            reliability(s0, _train_weeks(s_list[1], train_frac))
+            if len(s_list) > 1
+            else float("nan")
+        )
+        row["corr_with_context"] = float("nan")
+        row["corr_context_robust"] = float("nan")
+        row["corr_with_signal"] = (
+            reliability(s0, signal_ref) if signal_ref is not None else float("nan")
+        )
+        row["n_weeks_train"] = len(s0)
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def macro_correlations(
+    acq: DataAcquisition,
+    final_keywords: List[str],
+    train_frac: float = 0.70,
+    allow_network: bool = True,
+) -> pd.DataFrame:
+    """Korelacje parami między hasłami makro (kandydaci + hasła sygnału)
+    Służy do oceny, czy dwa hasła niosą różną informację, czy jedno dubluje drugie.
+    Nie dotyczy związku z ceną (testowany dopiero w modelach). Korzysta z tych samych plików co
+    investigate_macro, więc bez nowych zapytań do Google."""
+    cands = list(dict.fromkeys(list(MACRO_CANDIDATES) + list(final_keywords)))
+    series: Dict[str, pd.Series] = {}
+    for kw in cands:
+        try:
+            frame = acq.fetch_gt_frame([kw], repeat=0, allow_network=allow_network)
+            series[kw] = _train_weeks(frame.iloc[:, 0].astype(float), train_frac)
+        except DataAcquisitionError as exc:
+            logger.warning("[MACRO] %r niedostępne: %s", kw, exc)
+    rows = []
+    names = list(series)
+    for i, a in enumerate(names):
+        for b in names[i + 1 :]:
+            rows.append(
+                {
+                    "keyword_a": a,
+                    "keyword_b": b,
+                    "oba_w_sygnale": a in final_keywords and b in final_keywords,
+                    "pearson": reliability(series[a], series[b]),
+                    "spearman_diff": robust_corr(series[a], series[b]),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def macro_report(evaluated: pd.DataFrame) -> pd.DataFrame:
+    """Tabela wyniku dla haseł makro: status OK / NIE SPEŁNIA / BRAK DANYCH i lista zawodzących progów."""
+    rows = []
+    for r in evaluated.itertuples():
+        if getattr(r, "status", None) == "NO_DATA":
+            rows.append(
+                {
+                    "keyword": r.keyword,
+                    "typ": r.variant_type,
+                    "w_sygnale": r.in_signal,
+                    "status": "BRAK DANYCH",
+                    "failing_criteria": "brak pobrania",
+                }
+            )
+            continue
+        if pd.isna(r.reliability) and int(r.n_pulls) < 2:
+            rows.append(
+                {
+                    "keyword": r.keyword,
+                    "typ": r.variant_type,
+                    "w_sygnale": r.in_signal,
+                    "status": "BRAK DANYCH",
+                    "failing_criteria": "brak 2. pobrania (reliability)",
+                }
+            )
+            continue
+        failing = [
+            n
+            for n, ok in [
+                ("zero_share", r.ok_zero_share),
+                ("median_to_peak", r.ok_median_to_peak),
+                ("reliability", r.ok_reliability),
+            ]
+            if not bool(ok)
+        ]
+        rows.append(
+            {
+                "keyword": r.keyword,
+                "typ": r.variant_type,
+                "w_sygnale": r.in_signal,
+                "status": "OK" if r.eligible else "NIE SPEŁNIA",
+                "failing_criteria": ",".join(failing) or "-",
+                "zero_share": r.zero_share,
+                "median_to_peak": r.median_to_peak,
+                "reliability": r.reliability,
+                "corr_with_signal": r.corr_with_signal,
             }
         )
     return pd.DataFrame(rows)
