@@ -10,7 +10,6 @@ Wyniki results/step1/ :
   dollar_volume.png          - rozkład dziennego obrotu vs próg płynności
   high_correlation_pairs.csv - pary aktywów o wysokiej korelacji
   portfolio_comparison.csv   - miary dywersyfikacji presetów i portfela odniesienia
-  greedy_selection.csv       - kontrola: selekcja zachłanna
 """
 
 from __future__ import annotations
@@ -29,7 +28,6 @@ from src.selection.portfolio_diagnostics import (
     asset_statistics,
     close_frame,
     compare_candidates,
-    greedy_selection,
     high_correlation_pairs,
     liquidity_and_coverage_filter,
     plot_dollar_volume,
@@ -58,7 +56,6 @@ def main() -> None:
         default=50.0,
         help="próg płynności [mln USD/dzień]",
     )
-    ap.add_argument("--n-select", type=int, default=9)
     ap.add_argument(
         "--synthetic",
         action="store_true",
@@ -115,13 +112,7 @@ def main() -> None:
     comp = compare_candidates(ret, candidates)
     comp.round(3).to_csv(os.path.join(OUT, "portfolio_comparison.csv"))
 
-    # 4. kontrola: selekcja zachłanna z puli kwalifikujących się aktywów
-    greedy = greedy_selection(
-        ret, eligible, args.n_select, seed=["MSFT"], max_per_sector=2
-    )
-    greedy.round(3).to_csv(os.path.join(OUT, "greedy_selection.csv"), index=False)
-
-    # 4b. lejek: kryteria liczbowe dla każdego aktywa z uniwersum
+    # 4. lejek: kryteria liczbowe dla każdego aktywa z uniwersum
     used_in = {t: [k for k, w in PORTFOLIO_PRESETS.items() if t in w] for t in UNIVERSE}
     funnel = stats[
         [
@@ -130,8 +121,6 @@ def main() -> None:
             "sector",
             "ann_vol_%",
             "median_dollar_volume_M",
-            "mean_dollar_volume_M",
-            "max_to_median_volume",
             "obs_share",
             "passes_coverage",
             "passes_liquidity",
@@ -141,7 +130,6 @@ def main() -> None:
     funnel["avg_corr_to_others"] = ret.corr().apply(
         lambda c: (c.sum() - 1) / (len(c) - 1)
     )
-    funnel["in_greedy_selection"] = funnel.index.isin(["MSFT"] + list(greedy["added"]))
     funnel["presets"] = [",".join(used_in[t]) for t in funnel.index]
     funnel.round(3).to_csv(os.path.join(OUT, "selection_funnel.csv"))
 

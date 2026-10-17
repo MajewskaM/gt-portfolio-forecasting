@@ -1,56 +1,56 @@
-ticker,keyword,variant_type,priority,n_pulls,n_points,zero_share,mean_svi,median_svi,median_to_peak,cv,reliability,corr_with_context,corr_context_robust,n_weeks_train,ok_zero_share,ok_median_to_peak,ok_reliability,ok_unambiguous,eligible
-AAPL,AAPL stock,ticker_ctx,0,2,183,0.0,26.945,23.0,0.23,0.504,1.0,,,183,True,True,True,True,True
-AAPL,AAPL,ticker,1,2,183,0.0,27.836,24.0,0.24,0.447,1.0,0.955,0.955,183,True,True,True,True,True
-AAPL,Apple stock,name_ctx,2,2,183,0.0,20.694,18.0,0.18,0.59,1.0,,,183,True,True,True,True,True
-AAPL,Apple,name,3,2,183,0.0,40.454,38.0,0.38,0.241,1.0,0.066,0.173,183,True,True,True,False,False
-GLD,GLD etf,ticker_ctx,0,2,183,0.027,26.322,22.0,0.22,0.672,1.0,,,183,True,True,True,True,True
-GLD,GLD,ticker,1,2,183,0.0,37.891,35.0,0.35,0.378,1.0,0.906,0.623,183,True,True,True,True,True
-GLD,gold price,extra,4,2,183,0.0,41.836,40.0,0.4,0.335,1.0,,,183,True,True,True,True,True
-GLD,gold etf,extra,4,2,183,0.0,25.027,21.0,0.21,0.576,1.0,,,183,True,True,True,True,True
-GOOGL,GOOGL stock,ticker_ctx,0,2,183,0.0,19.645,16.0,0.16,0.605,1.0,,,183,True,True,True,True,True
-GOOGL,GOOGL,ticker,1,2,183,0.0,50.148,48.0,0.48,0.268,1.0,0.553,0.782,183,True,True,True,True,True
-GOOGL,Google stock,name_ctx,2,2,183,0.0,23.574,20.0,0.2,0.502,1.0,,,183,True,True,True,True,True
-GOOGL,Google,name,3,2,183,0.0,44.355,41.0,0.41,0.265,1.0,0.242,0.406,183,True,True,True,False,False
-GOOGL,Alphabet stock,extra,4,2,183,0.0,11.536,9.0,0.09,0.753,1.0,,,183,True,False,True,True,False
-JNJ,JNJ stock,ticker_ctx,0,2,183,0.0,29.186,24.0,0.24,0.492,0.998,,,183,True,True,True,True,True
-JNJ,JNJ,ticker,1,2,183,0.0,28.284,24.0,0.24,0.434,1.0,0.927,0.935,183,True,True,True,True,True
-JNJ,Johnson & Johnson stock,name_ctx,2,2,183,0.0,26.978,23.0,0.23,0.6,1.0,,,183,True,True,True,True,True
-JNJ,Johnson & Johnson,name,3,2,183,0.0,18.41,13.0,0.13,0.776,1.0,0.543,0.617,183,True,True,True,True,True
-JPM,JPM stock,ticker_ctx,0,2,183,0.0,31.536,27.0,0.27,0.489,1.0,,,183,True,True,True,True,True
-JPM,JPM,ticker,1,2,183,0.0,32.831,29.0,0.29,0.371,1.0,0.97,0.948,183,True,True,True,True,True
-JPM,JPMorgan stock,name_ctx,2,2,183,0.0,28.142,27.0,0.36,0.379,1.0,,,183,True,True,True,True,True
-JPM,JPMorgan,name,3,2,183,0.0,48.962,49.0,0.49,0.153,1.0,0.254,0.524,183,True,True,True,False,False
-MSFT,MSFT stock,ticker_ctx,0,2,183,0.0,33.481,32.0,0.32,0.444,0.995,,,183,True,True,True,True,True
-MSFT,MSFT,ticker,1,2,183,0.0,33.852,29.0,0.29,0.45,1.0,0.97,0.94,183,True,True,True,True,True
-MSFT,Microsoft stock,name_ctx,2,2,183,0.0,34.284,32.0,0.32,0.459,1.0,,,183,True,True,True,True,True
-MSFT,Microsoft,name,3,2,183,0.0,61.639,60.0,0.6,0.161,1.0,0.713,0.336,183,True,True,True,False,False
-PG,PG stock,ticker_ctx,0,2,183,0.0,37.858,36.0,0.36,0.288,1.0,,,183,True,True,True,True,True
-PG,PG,ticker,1,2,183,0.0,48.158,47.0,0.47,0.138,1.0,0.356,0.388,183,True,True,True,False,False
-PG,Procter & Gamble stock,name_ctx,2,2,183,0.0,37.525,37.0,0.37,0.301,1.0,,,183,True,True,True,True,True
-PG,Procter & Gamble,name,3,2,183,0.0,46.295,44.0,0.44,0.241,1.0,0.742,0.624,183,True,True,True,True,True
-QQQ,QQQ etf,ticker_ctx,0,2,183,0.0,40.0,42.0,0.42,0.46,1.0,,,183,True,True,True,True,True
-QQQ,QQQ,ticker,1,2,183,0.0,35.617,36.0,0.36,0.49,1.0,0.821,0.684,183,True,True,True,True,True
-QQQ,Nasdaq 100,extra,4,2,183,0.0,31.377,29.0,0.29,0.541,1.0,,,183,True,True,True,True,True
-QQQ,QQQ stock,extra,4,2,183,0.0,38.082,39.0,0.39,0.557,1.0,,,183,True,True,True,True,True
-SLV,SLV etf,ticker_ctx,0,2,183,0.497,4.153,3.0,0.03,2.147,1.0,,,183,False,False,True,True,False
-SLV,SLV,ticker,1,2,183,0.0,6.027,5.0,0.05,1.313,1.0,0.96,0.446,183,True,False,True,True,False
-SLV,silver price,extra,4,2,183,0.0,14.426,14.0,0.14,0.61,1.0,,,183,True,True,True,True,True
-SLV,SLV stock,extra,4,2,183,0.0,5.142,4.0,0.04,1.593,1.0,,,183,True,False,True,True,False
-SLV,silver etf,extra,4,2,183,0.033,6.077,5.0,0.05,1.401,1.0,,,183,True,False,True,True,False
-SPY,SPY etf,ticker_ctx,0,2,183,0.0,23.098,21.0,0.21,0.521,1.0,,,183,True,True,True,True,True
-SPY,SPY,ticker,1,2,183,0.0,22.295,21.0,0.538,0.213,1.0,0.708,0.416,183,True,True,True,True,True
-SPY,S&P 500,extra,4,2,183,0.0,26.863,25.0,0.25,0.443,1.0,,,183,True,True,True,True,True
-SPY,SPY stock,extra,4,2,183,0.0,27.426,25.0,0.25,0.559,1.0,,,183,True,True,True,True,True
-TLT,TLT etf,ticker_ctx,0,2,183,0.421,9.59,11.0,0.175,1.031,1.0,,,183,False,True,True,True,False
-TLT,TLT,ticker,1,2,183,0.0,21.257,20.0,0.233,0.392,1.0,0.786,0.499,183,True,True,True,True,True
-TLT,treasury bonds,extra,4,2,183,0.0,10.055,8.0,0.174,0.666,1.0,,,183,True,True,True,True,True
-TLT,treasury yield,extra,4,2,183,0.0,18.514,13.0,0.159,0.754,1.0,,,183,True,True,True,True,True
-USO,USO etf,ticker_ctx,0,2,183,0.372,2.071,1.0,0.01,3.86,1.0,,,183,False,False,True,True,False
-USO,USO,ticker,1,2,183,0.0,12.923,11.0,0.11,0.621,1.0,0.949,0.238,183,True,True,True,False,False
-USO,USO stock,extra,4,2,183,0.0,4.169,2.0,0.02,2.268,1.0,,,183,True,False,True,True,False
-USO,oil price,extra,4,2,183,0.0,10.721,8.0,0.08,0.941,1.0,,,183,True,False,True,True,False
-USO,crude oil price,extra,4,2,183,0.0,7.158,4.0,0.04,1.346,1.0,,,183,True,False,True,True,False
-XOM,XOM stock,ticker_ctx,0,2,183,0.0,31.055,31.0,0.31,0.512,1.0,,,183,True,True,True,True,True
-XOM,XOM,ticker,1,2,183,0.0,29.311,29.0,0.29,0.465,1.0,0.98,0.942,183,True,True,True,True,True
-XOM,Exxon stock,name_ctx,2,2,183,0.0,17.885,16.0,0.16,0.758,1.0,,,183,True,True,True,True,True
-XOM,Exxon,name,3,2,183,0.0,34.891,31.0,0.31,0.309,1.0,0.912,0.674,183,True,True,True,True,True
+ticker,keyword,variant_type,priority,n_pulls,n_points,zero_share,mean_svi,median_svi,median_to_peak,cv,corr_with_context,corr_context_robust,n_weeks_train,ok_zero_share,ok_median_to_peak,ok_unambiguous,eligible
+AAPL,AAPL stock,ticker_ctx,0,1,183,0.0,26.945,23.0,0.23,0.504,,,183,True,True,True,True
+AAPL,AAPL,ticker,1,1,183,0.0,27.836,24.0,0.24,0.447,0.955,0.955,183,True,True,True,True
+AAPL,Apple stock,name_ctx,2,1,183,0.0,20.694,18.0,0.18,0.59,,,183,True,True,True,True
+AAPL,Apple,name,3,1,183,0.0,40.454,38.0,0.38,0.241,0.066,0.173,183,True,True,False,False
+GLD,GLD etf,ticker_ctx,0,1,183,0.027,26.322,22.0,0.22,0.672,,,183,True,True,True,True
+GLD,GLD,ticker,1,1,183,0.0,37.891,35.0,0.35,0.378,0.906,0.623,183,True,True,True,True
+GLD,gold price,extra,4,1,183,0.0,41.836,40.0,0.4,0.335,,,183,True,True,True,True
+GLD,gold etf,extra,4,1,183,0.0,25.027,21.0,0.21,0.576,,,183,True,True,True,True
+GOOGL,GOOGL stock,ticker_ctx,0,1,183,0.0,19.645,16.0,0.16,0.605,,,183,True,True,True,True
+GOOGL,GOOGL,ticker,1,1,183,0.0,50.148,48.0,0.48,0.268,0.553,0.782,183,True,True,True,True
+GOOGL,Google stock,name_ctx,2,1,183,0.0,23.574,20.0,0.2,0.502,,,183,True,True,True,True
+GOOGL,Google,name,3,1,183,0.0,44.355,41.0,0.41,0.265,0.242,0.406,183,True,True,False,False
+GOOGL,Alphabet stock,extra,4,1,183,0.0,11.536,9.0,0.09,0.753,,,183,True,False,True,False
+JNJ,JNJ stock,ticker_ctx,0,1,183,0.0,29.186,24.0,0.24,0.492,,,183,True,True,True,True
+JNJ,JNJ,ticker,1,1,183,0.0,28.284,24.0,0.24,0.434,0.927,0.935,183,True,True,True,True
+JNJ,Johnson & Johnson stock,name_ctx,2,1,183,0.0,26.978,23.0,0.23,0.6,,,183,True,True,True,True
+JNJ,Johnson & Johnson,name,3,1,183,0.0,18.41,13.0,0.13,0.776,0.543,0.617,183,True,True,True,True
+JPM,JPM stock,ticker_ctx,0,1,183,0.0,31.536,27.0,0.27,0.489,,,183,True,True,True,True
+JPM,JPM,ticker,1,1,183,0.0,32.831,29.0,0.29,0.371,0.97,0.948,183,True,True,True,True
+JPM,JPMorgan stock,name_ctx,2,1,183,0.0,28.142,27.0,0.36,0.379,,,183,True,True,True,True
+JPM,JPMorgan,name,3,1,183,0.0,48.962,49.0,0.49,0.153,0.254,0.524,183,True,True,False,False
+MSFT,MSFT stock,ticker_ctx,0,1,183,0.0,33.481,32.0,0.32,0.444,,,183,True,True,True,True
+MSFT,MSFT,ticker,1,1,183,0.0,33.852,29.0,0.29,0.45,0.97,0.94,183,True,True,True,True
+MSFT,Microsoft stock,name_ctx,2,1,183,0.0,34.284,32.0,0.32,0.459,,,183,True,True,True,True
+MSFT,Microsoft,name,3,1,183,0.0,61.639,60.0,0.6,0.161,0.713,0.336,183,True,True,False,False
+PG,PG stock,ticker_ctx,0,1,183,0.0,37.858,36.0,0.36,0.288,,,183,True,True,True,True
+PG,PG,ticker,1,1,183,0.0,48.158,47.0,0.47,0.138,0.356,0.388,183,True,True,False,False
+PG,Procter & Gamble stock,name_ctx,2,1,183,0.0,37.525,37.0,0.37,0.301,,,183,True,True,True,True
+PG,Procter & Gamble,name,3,1,183,0.0,46.295,44.0,0.44,0.241,0.742,0.624,183,True,True,True,True
+QQQ,QQQ etf,ticker_ctx,0,1,183,0.0,40.0,42.0,0.42,0.46,,,183,True,True,True,True
+QQQ,QQQ,ticker,1,1,183,0.0,35.617,36.0,0.36,0.49,0.821,0.684,183,True,True,True,True
+QQQ,Nasdaq 100,extra,4,1,183,0.0,31.377,29.0,0.29,0.541,,,183,True,True,True,True
+QQQ,QQQ stock,extra,4,1,183,0.0,38.082,39.0,0.39,0.557,,,183,True,True,True,True
+SLV,SLV etf,ticker_ctx,0,1,183,0.497,4.153,3.0,0.03,2.147,,,183,False,False,True,False
+SLV,SLV,ticker,1,1,183,0.0,6.027,5.0,0.05,1.313,0.96,0.446,183,True,False,True,False
+SLV,silver price,extra,4,1,183,0.0,14.426,14.0,0.14,0.61,,,183,True,True,True,True
+SLV,SLV stock,extra,4,1,183,0.0,5.142,4.0,0.04,1.593,,,183,True,False,True,False
+SLV,silver etf,extra,4,1,183,0.033,6.077,5.0,0.05,1.401,,,183,True,False,True,False
+SPY,SPY etf,ticker_ctx,0,1,183,0.0,23.098,21.0,0.21,0.521,,,183,True,True,True,True
+SPY,SPY,ticker,1,1,183,0.0,22.295,21.0,0.538,0.213,0.708,0.416,183,True,True,True,True
+SPY,S&P 500,extra,4,1,183,0.0,26.863,25.0,0.25,0.443,,,183,True,True,True,True
+SPY,SPY stock,extra,4,1,183,0.0,27.426,25.0,0.25,0.559,,,183,True,True,True,True
+TLT,TLT etf,ticker_ctx,0,1,183,0.421,9.59,11.0,0.175,1.031,,,183,False,True,True,False
+TLT,TLT,ticker,1,1,183,0.0,21.257,20.0,0.233,0.392,0.786,0.499,183,True,True,True,True
+TLT,treasury bonds,extra,4,1,183,0.0,10.055,8.0,0.174,0.666,,,183,True,True,True,True
+TLT,treasury yield,extra,4,1,183,0.0,18.514,13.0,0.159,0.754,,,183,True,True,True,True
+USO,USO etf,ticker_ctx,0,1,183,0.372,2.071,1.0,0.01,3.86,,,183,False,False,True,False
+USO,USO,ticker,1,1,183,0.0,12.923,11.0,0.11,0.621,0.949,0.238,183,True,True,False,False
+USO,USO stock,extra,4,1,183,0.0,4.169,2.0,0.02,2.268,,,183,True,False,True,False
+USO,oil price,extra,4,1,183,0.0,10.721,8.0,0.08,0.941,,,183,True,False,True,False
+USO,crude oil price,extra,4,1,183,0.0,7.158,4.0,0.04,1.346,,,183,True,False,True,False
+XOM,XOM stock,ticker_ctx,0,1,183,0.0,31.055,31.0,0.31,0.512,,,183,True,True,True,True
+XOM,XOM,ticker,1,1,183,0.0,29.311,29.0,0.29,0.465,0.98,0.942,183,True,True,True,True
+XOM,Exxon stock,name_ctx,2,1,183,0.0,17.885,16.0,0.16,0.758,,,183,True,True,True,True
+XOM,Exxon,name,3,1,183,0.0,34.891,31.0,0.31,0.309,0.912,0.674,183,True,True,True,True

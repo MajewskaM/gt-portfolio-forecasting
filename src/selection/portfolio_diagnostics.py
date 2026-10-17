@@ -16,7 +16,7 @@ Miary dywersyfikacji:
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable
 
 import numpy as np
 import pandas as pd
@@ -65,11 +65,6 @@ def asset_statistics(
                 "ann_vol_%": 100 * r.std() * np.sqrt(252),
                 "median_dollar_volume_M": float(
                     (d["Close"] * d["Volume"]).median() / 1e6
-                ),
-                "mean_dollar_volume_M": float((d["Close"] * d["Volume"]).mean() / 1e6),
-                "max_to_median_volume": float(
-                    (d["Close"] * d["Volume"]).max()
-                    / (d["Close"] * d["Volume"]).median()
                 ),
             }
         )
@@ -154,45 +149,6 @@ def high_correlation_pairs(ret: pd.DataFrame, threshold: float = 0.85) -> pd.Dat
     return pd.DataFrame(out, columns=["a", "b", "corr"]).sort_values(
         "corr", ascending=False
     )
-
-
-# selekcja zachłanna
-def greedy_selection(
-    ret: pd.DataFrame,
-    pool: List[str],
-    n_select: int = 9,
-    seed: Optional[List[str]] = None,
-    max_per_sector: int = 2,
-) -> pd.DataFrame:
-    """Zachłanna selekcja w przód: w każdym kroku dodaje aktywo z pool, które
-    maksymalizuje współczynnik dywersyfikacji portfela, przy limicie
-    max_per_sector aktywów z jednego sektora, żeby nie zdominował jej jeden sektor.
-
-    Pokazuje, czy ręcznie zaprojektowany preset jest rozsądny względem prostego algorytmu.
-    Wynik zależy od próby i nie jest jedynym uzasadnionym rozwiązaniem (DR sprzyja aktywom niskiej zmienności, np.
-    obligacjom) - dlatego ostateczny skład wynika z jasnych reguł."""
-    chosen = list(seed or [])
-    rows = []
-    cand = [t for t in pool if t in ret.columns and t not in chosen]
-    while len(chosen) < n_select and cand:
-        best, best_dr = None, -np.inf
-        for t in sorted(cand):
-            sec = UNIVERSE[t].sector
-            if sum(UNIVERSE[c].sector == sec for c in chosen) >= max_per_sector:
-                continue
-            trial = chosen + [t]
-            w = {a: 1 / len(trial) for a in trial}
-            dr = portfolio_diagnostics(ret, w)["diversification_ratio"]
-            if dr > best_dr:
-                best, best_dr = t, dr
-        if best is None:
-            break
-        chosen.append(best)
-        cand.remove(best)
-        rows.append(
-            {"step": len(chosen), "added": best, "diversification_ratio": best_dr}
-        )
-    return pd.DataFrame(rows)
 
 
 # wykresy

@@ -10,7 +10,7 @@ Dobór słów kluczowych Google Trends dla aktywów portfeli.
     python -m scripts.step1_gt_keywords --macro-only         # tylko jakość haseł makro
 
 Pobiera warianty słów z src/data/gt_dictionary.py,
-każdy co najmniej dwukrotnie, zapisuje ostateczny wybór (ASSET_KEYWORDS) progami jakości i wskazuje
+weryfikuje ostateczny wybór (ASSET_KEYWORDS) progami jakości i wskazuje
 zamiennik, gdy wybór zawodzi. Zapisuje:
   results/step1/gt_keyword_variants.csv      - wskaźniki wszystkich wariantów
   results/step1/gt_final_validation.csv      - OK / ZAMIENIĆ / NO_GT dla wyboru ostatecznego
@@ -62,7 +62,7 @@ def run_macro(acq, args, th) -> pd.DataFrame:
         args.train_frac,
         allow_network=not args.offline,
     )
-    ev = apply_thresholds(raw, th, require_reliability=args.repeats >= 2)
+    ev = apply_thresholds(raw, th)
     ev.round(3).to_csv(os.path.join(OUT, "gt_macro_variants.csv"), index=False)
     rep = macro_report(ev)
     rep.round(3).to_csv(os.path.join(OUT, "gt_macro_quality.csv"), index=False)
@@ -87,8 +87,8 @@ def main() -> None:
     ap.add_argument(
         "--repeats",
         type=int,
-        default=2,
-        help="liczba niezależnych pobrań wariantu (>=2 dla niezawodności)",
+        default=1,
+        help="liczba niezależnych pobrań wariantu (do analizy używane jest pierwsze)",
     )
     ap.add_argument(
         "--offline",
@@ -137,9 +137,6 @@ def main() -> None:
         "--min-median-to-peak", type=float, default=KeywordThresholds.min_median_to_peak
     )
     ap.add_argument(
-        "--min-reliability", type=float, default=KeywordThresholds.min_reliability
-    )
-    ap.add_argument(
         "--min-corr-context",
         type=float,
         default=KeywordThresholds.min_corr_with_context,
@@ -173,11 +170,10 @@ def main() -> None:
         return
     acq = DataAcquisition(cfg)
     th = KeywordThresholds(
-        args.max_zero_share,
-        args.min_median_to_peak,
-        args.min_reliability,
-        args.min_corr_context,
-        args.min_corr_context_robust,
+        max_zero_share=args.max_zero_share,
+        min_median_to_peak=args.min_median_to_peak,
+        min_corr_with_context=args.min_corr_context,
+        min_corr_context_robust=args.min_corr_context_robust,
     )
     if args.macro_only:
         run_macro(acq, args, th)
@@ -192,14 +188,15 @@ def main() -> None:
             )
         )
     raw = pd.concat(frames, ignore_index=True)
-    evaluated = apply_thresholds(raw, th, require_reliability=args.repeats >= 2)
+    evaluated = apply_thresholds(raw, th)
     sens = threshold_sensitivity(raw, th)
 
     evaluated.round(3).to_csv(os.path.join(OUT, "gt_keyword_variants.csv"), index=False)
     sens.to_csv(os.path.join(OUT, "gt_threshold_sensitivity.csv"), index=False)
 
+    # aktywa spoza ASSET_KEYWORDS są weryfikowane bez wybranego słowa
     final_val = validate_final_choice(
-        evaluated, {t: ASSET_KEYWORDS[t] for t in tickers if t in ASSET_KEYWORDS}
+        evaluated, {t: ASSET_KEYWORDS.get(t) for t in tickers}
     )
     final_val.round(3).to_csv(os.path.join(OUT, "gt_final_validation.csv"), index=False)
     if args.write_selection:

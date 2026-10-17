@@ -3,11 +3,10 @@ Badanie i wybór słów kluczowych Google Trends dla aktywów.
 
 Zasady:
   1. Dla każdego aktywa generujemy warianty słowa (gt_dictionary.candidate_keywords).
-  2. Każdy wariant pobieramy osobno (pełna rozdzielczość gt 0-100) co najmniej
-     dwukrotnie, niezależnie (szum próbkowania GT: kolejne pobrania różnią się).
+  2. Każdy wariant pobieramy osobno (pełna rozdzielczość gt 0-100).
   3. Dla każdego wariantu liczymy wskaźniki jakosci danych (na tygodniach
-     zbioru treningowego): udział zer, mediana/szczyt, niezawodność (korelacja
-     dwóch pobrań), jednoznaczność (korelacja z wariantem kontekstowym 'X stock').
+     zbioru treningowego): udział zer, mediana/szczyt, jednoznaczność
+     (korelacja z wariantem kontekstowym 'X stock').
   4. Reguła wyboru: pierwszy wariant z listy priorytetów, który spełnia wszystkie
      progi. Brak spełniającego => aktywo oznaczone NO_GT.
 
@@ -45,7 +44,6 @@ class KeywordThresholds:
         0.10  # powyżej: sygnał to głównie zera (rozdzielczość 0-100)
     )
     min_median_to_peak: float = 0.10  # poniżej: seria zdominowana pojedynczymi skokami
-    min_reliability: float = 0.80  # korelacja dwóch niezależnych pobrań
     min_corr_with_context: float = (
         0.50  # poniżej: wariant mierzy co innego niż 'X stock'
     )
@@ -70,9 +68,8 @@ def svi_quality(svi: pd.Series) -> Dict[str, float]:
     }
 
 
-def reliability(a: pd.Series, b: pd.Series) -> float:
-    """Niezawodność test-retest: korelacja Pearsona poziomów dwóch niezależnych
-    pobrań tego samego zapytania. Przy stałej serii zwraca NaN."""
+def pearson_corr(a: pd.Series, b: pd.Series) -> float:
+    """Korelacja Pearsona poziomów dwóch serii SVI. Przy stałej serii zwraca NaN."""
     j = pd.concat([a, b], axis=1, join="inner").dropna()
     if len(j) < 10 or j.iloc[:, 0].std() == 0 or j.iloc[:, 1].std() == 0:
         return float("nan")
@@ -98,7 +95,7 @@ def _train_weeks(svi: pd.Series, train_frac: float) -> pd.Series:
 def investigate_asset(
     acq: DataAcquisition,
     ticker: str,
-    n_repeats: int = 2,
+    n_repeats: int = 1,
     train_frac: float = 0.70,
     allow_network: bool = True,
 ) -> pd.DataFrame:
@@ -139,17 +136,10 @@ def investigate_asset(
             continue
         s0 = _train_weeks(s_list[0], train_frac)
         row.update(svi_quality(s0))
-        row["reliability"] = (
-            reliability(
-                _train_weeks(s_list[0], train_frac), _train_weeks(s_list[1], train_frac)
-            )
-            if len(s_list) > 1
-            else float("nan")
-        )
         # Test jednoznaczności dotyczy tylko wariantów (ticker, nazwa): najlepsza
         # korelacja z dowolnym wariantem kontekstowym. Warianty z kontekstem są jednoznaczne
         # z konstrukcji, a hasła-proxy (extra) jest traktowany jako zamiennik - bez tego testu.
-        refs = [reliability(s0, r) for k2, r in ctx_refs.items() if k2 != kw]
+        refs = [pearson_corr(s0, r) for k2, r in ctx_refs.items() if k2 != kw]
         refs = [x for x in refs if not np.isnan(x)]
         row["corr_with_context"] = (
             max(refs) if (kind in BARE_TYPES and refs) else float("nan")
@@ -164,19 +154,13 @@ def investigate_asset(
     return pd.DataFrame(rows)
 
 
-def apply_thresholds(
-    df: pd.DataFrame, th: KeywordThresholds, require_reliability: bool = True
-) -> pd.DataFrame:
+def apply_thresholds(df: pd.DataFrame, th: KeywordThresholds) -> pd.DataFrame:
     """Dodaje kolumny z testami progów i flagę 'eligible'.
-    reliability NaN => niespełnione (gdy wymagane);
     corr_with_context NaN => wariant referencyjny."""
     d = df.copy()
     ok = d.get("status", pd.Series("OK", index=d.index)).ne("NO_DATA")
     d["ok_zero_share"] = d["zero_share"] <= th.max_zero_share
     d["ok_median_to_peak"] = d["median_to_peak"] >= th.min_median_to_peak
-    d["ok_reliability"] = (
-        (d["reliability"] >= th.min_reliability) if require_reliability else True
-    )
     d["ok_unambiguous"] = (
         d["corr_with_context"].isna()
         | (d["corr_with_context"] >= th.min_corr_with_context)
@@ -185,11 +169,7 @@ def apply_thresholds(
         | (d["corr_context_robust"] >= th.min_corr_context_robust)
     )
     d["eligible"] = (
-        ok
-        & d["ok_zero_share"]
-        & d["ok_median_to_peak"]
-        & d["ok_reliability"]
-        & d["ok_unambiguous"]
+        ok & d["ok_zero_share"] & d["ok_median_to_peak"] & d["ok_unambiguous"]
     )
     return d
 
@@ -199,9 +179,7 @@ def select_keywords(evaluated: pd.DataFrame) -> pd.DataFrame:
     Brak => 'NO_GT'. Na koniec zwraca tabelę decyzji."""
     rows = []
     for ticker, g in evaluated.groupby("ticker", sort=False):
-        el = g[g["eligible"]].sort_values(
-            ["priority", "reliability"], ascending=[True, False]
-        )
+        el = g[g["eligible"]].sort_values("priority", kind="stable")
         if el.empty:
             rows.append(
                 {
@@ -240,7 +218,6 @@ def threshold_sensitivity(
             base,
             max_zero_share=base.max_zero_share * 2,
             min_median_to_peak=base.min_median_to_peak / 2,
-            min_reliability=base.min_reliability - 0.1,
             min_corr_with_context=base.min_corr_with_context - 0.2,
             min_corr_context_robust=base.min_corr_context_robust - 0.2,
         ),
@@ -248,7 +225,6 @@ def threshold_sensitivity(
             base,
             max_zero_share=base.max_zero_share / 2,
             min_median_to_peak=base.min_median_to_peak * 1.5,
-            min_reliability=min(base.min_reliability + 0.1, 0.99),
             min_corr_with_context=base.min_corr_with_context + 0.2,
             min_corr_context_robust=base.min_corr_context_robust + 0.2,
         ),
@@ -272,14 +248,14 @@ def threshold_sensitivity(
 def investigate_macro(
     acq: DataAcquisition,
     final_keywords: List[str],
-    n_repeats: int = 2,
+    n_repeats: int = 1,
     train_frac: float = 0.70,
     allow_network: bool = True,
 ) -> pd.DataFrame:
     """Jakość danych haseł sygnału makro, tymi samymi wskaźnikami co dla aktywów
-    (udział zer, mediana/szczyt, niezawodność test-retest na tygodniach zbioru treningowego).
+    (udział zer, mediana/szczyt na tygodniach zbioru treningowego).
     Wiersze:
-    - każde hasło z MACRO_CANDIDATES pobrane osobno (>= n_repeats niezależnych pobrań);
+    - każde hasło z MACRO_CANDIDATES pobrane osobno;
     - sam sygnał makro, czyli suma haseł `final_keywords` pobranych w jednym zapytaniu (zeby miec wspólna skala z GT),
     tak jak jest używany w modelu (FeatureSet.WITH_GT_MACRO).
     - corr_with_signal mówi, jak blisko sygnału makro jest dane hasło- korelacja
@@ -333,15 +309,10 @@ def investigate_macro(
             continue
         s0 = _train_weeks(s_list[0], train_frac)
         row.update(svi_quality(s0))
-        row["reliability"] = (
-            reliability(s0, _train_weeks(s_list[1], train_frac))
-            if len(s_list) > 1
-            else float("nan")
-        )
         row["corr_with_context"] = float("nan")
         row["corr_context_robust"] = float("nan")
         row["corr_with_signal"] = (
-            reliability(s0, signal_ref) if signal_ref is not None else float("nan")
+            pearson_corr(s0, signal_ref) if signal_ref is not None else float("nan")
         )
         row["n_weeks_train"] = len(s0)
         rows.append(row)
@@ -375,7 +346,7 @@ def macro_correlations(
                     "keyword_a": a,
                     "keyword_b": b,
                     "oba_w_sygnale": a in final_keywords and b in final_keywords,
-                    "pearson": reliability(series[a], series[b]),
+                    "pearson": pearson_corr(series[a], series[b]),
                     "spearman_diff": robust_corr(series[a], series[b]),
                 }
             )
@@ -397,23 +368,11 @@ def macro_report(evaluated: pd.DataFrame) -> pd.DataFrame:
                 }
             )
             continue
-        if pd.isna(r.reliability) and int(r.n_pulls) < 2:
-            rows.append(
-                {
-                    "keyword": r.keyword,
-                    "typ": r.variant_type,
-                    "w_sygnale": r.in_signal,
-                    "status": "BRAK DANYCH",
-                    "failing_criteria": "brak 2. pobrania (reliability)",
-                }
-            )
-            continue
         failing = [
             n
             for n, ok in [
                 ("zero_share", r.ok_zero_share),
                 ("median_to_peak", r.ok_median_to_peak),
-                ("reliability", r.ok_reliability),
             ]
             if not bool(ok)
         ]
@@ -426,7 +385,6 @@ def macro_report(evaluated: pd.DataFrame) -> pd.DataFrame:
                 "failing_criteria": ",".join(failing) or "-",
                 "zero_share": r.zero_share,
                 "median_to_peak": r.median_to_peak,
-                "reliability": r.reliability,
                 "corr_with_signal": r.corr_with_signal,
             }
         )
@@ -488,22 +446,35 @@ def fetch_related_cached(
 
 
 def validate_final_choice(
-    evaluated: pd.DataFrame, final: Dict[str, str]
+    evaluated: pd.DataFrame, final: Dict[str, Optional[str]]
 ) -> pd.DataFrame:
     """Weryfikacja ostatecznego wyboru słów (gt_dictionary.ASSET_KEYWORDS) na danych.
 
     Dla każdego aktywa: czy wybrane słowo spełnia progi jakości, które z progów
     zawodzą i jaki jest zamiennik (pierwszy kwalifikujący się wariant wg priorytetu;
-    'NO_GT' gdy żaden). Status: OK / ZAMIENIĆ (zamiennik istnieje) / NO_GT."""
+    'NO_GT' gdy żaden).
+    Status: OK / ZAMIENIĆ (zamiennik istnieje) / NO_GT.
+    """
     rows = []
     for ticker, kw in final.items():
         g = evaluated[evaluated["ticker"] == ticker]
         if g.empty:
             continue
-        row = g[g["keyword"] == kw]
         alt = g[g["eligible"] & (g["keyword"] != kw)].sort_values(
-            ["priority", "reliability"], ascending=[True, False]
+            "priority", kind="stable"
         )
+        if kw is None:
+            rows.append(
+                {
+                    "ticker": ticker,
+                    "final_keyword": None,
+                    "status": "BRAK WYBORU" if len(alt) else "NO_GT",
+                    "failing_criteria": "-" if len(alt) else "wszystkie warianty",
+                    "replacement": alt.iloc[0]["keyword"] if len(alt) else None,
+                }
+            )
+            continue
+        row = g[g["keyword"] == kw]
         if row.empty or row.iloc[0].get("status") == "NO_DATA":
             rows.append(
                 {
@@ -516,24 +487,11 @@ def validate_final_choice(
             )
             continue
         r = row.iloc[0]
-        # reliability wymaga dwoch niezależnych pobrań; bledu 429 nie wolno tego raportować jako NO_GT
-        if pd.isna(r.get("reliability")) and int(r.get("n_pulls", 0)) < 2:
-            rows.append(
-                {
-                    "ticker": ticker,
-                    "final_keyword": kw,
-                    "status": "BRAK DANYCH",
-                    "failing_criteria": "brak 2. pobrania (reliability)",
-                    "replacement": None,
-                }
-            )
-            continue
         failing = [
             name
             for name, col in [
                 ("zero_share", "ok_zero_share"),
                 ("median_to_peak", "ok_median_to_peak"),
-                ("reliability", "ok_reliability"),
                 ("jednoznaczność", "ok_unambiguous"),
             ]
             if not bool(r[col])
@@ -553,7 +511,6 @@ def validate_final_choice(
                 "replacement": repl,
                 "zero_share": r.get("zero_share"),
                 "median_to_peak": r.get("median_to_peak"),
-                "reliability": r.get("reliability"),
                 "corr_with_context": r.get("corr_with_context"),
                 "corr_context_robust": r.get("corr_context_robust"),
             }
