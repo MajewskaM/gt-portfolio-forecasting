@@ -1,0 +1,11 @@
+keyword_a,keyword_b,oba_w_sygnale,pearson,spearman_diff
+stock market,S&P 500,True,0.89,0.502
+stock market,recession,False,0.473,0.318
+stock market,inflation,False,0.008,0.025
+stock market,stock market crash,False,0.918,0.575
+S&P 500,recession,False,0.582,0.453
+S&P 500,inflation,False,0.275,0.278
+S&P 500,stock market crash,False,0.817,0.67
+recession,inflation,False,0.418,0.326
+recession,stock market crash,False,0.451,0.507
+inflation,stock market crash,False,0.124,0.312

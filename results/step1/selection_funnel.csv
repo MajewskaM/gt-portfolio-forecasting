@@ -1,0 +1,26 @@
+ticker,kind,asset_class,sector,ann_vol_%,median_dollar_volume_M,obs_share,passes_coverage,passes_liquidity,eligible,avg_corr_to_others,presets
+AAPL,stock,equity,Information Technology,34.422,10476.899,1.0,True,True,True,0.433,"diversified_9,tech_heavy"
+AGG,etf,bond,aggregate,5.907,519.558,1.0,True,True,True,0.172,
+AMZN,stock,equity,Consumer Discretionary,33.855,9619.739,1.0,True,True,True,0.338,
+DIA,etf,equity,broad,22.982,958.77,1.0,True,True,True,0.531,
+EEM,etf,equity,broad,24.138,1908.698,1.0,True,True,True,0.452,
+EFA,etf,equity,broad,20.817,1369.665,1.0,True,True,True,0.504,
+GLD,etf,commodity,gold,15.285,1368.136,1.0,True,True,True,0.14,"diversified_9,defensive,commodities_tilted"
+GOOGL,stock,equity,Communication Services,30.99,2679.422,1.0,True,True,True,0.429,tech_heavy
+IEF,etf,bond,treasuries,6.664,525.587,1.0,True,True,True,-0.071,
+IWM,etf,equity,small-cap,28.378,4212.099,1.0,True,True,True,0.475,
+JNJ,stock,equity,Health Care,21.245,883.262,1.0,True,True,True,0.346,"diversified_9,defensive"
+JPM,stock,equity,Financials,34.932,1381.538,1.0,True,True,True,0.38,diversified_9
+KO,stock,equity,Consumer Staples,23.606,624.04,1.0,True,True,True,0.394,
+LQD,etf,bond,credit,10.944,1305.612,1.0,True,True,True,0.272,
+MSFT,stock,equity,Information Technology,31.146,5677.44,1.0,True,True,True,0.463,"diversified_9,tech_heavy,commodities_tilted"
+PG,stock,equity,Consumer Staples,22.802,780.388,1.0,True,True,True,0.371,"diversified_9,defensive"
+QQQ,etf,equity,broad-growth,26.564,10092.433,1.0,True,True,True,0.503,"tech_heavy,commodities_tilted"
+SLV,etf,commodity,silver,30.687,436.169,1.0,True,True,True,0.207,commodities_tilted
+SPY,etf,equity,broad,22.456,23324.366,1.0,True,True,True,0.548,"diversified_9,tech_heavy,defensive,commodities_tilted"
+TLT,etf,bond,treasuries,16.873,1427.327,1.0,True,True,True,-0.101,"diversified_9,defensive"
+USO,etf,commodity,oil,48.008,262.782,1.0,True,True,True,0.193,
+VNQ,etf,real_estate,REIT,26.309,355.129,1.0,True,True,True,0.481,
+WMT,stock,equity,Consumer Staples,23.126,835.817,1.0,True,True,True,0.275,
+XLU,etf,equity,Utilities,24.03,741.978,1.0,True,True,True,0.42,
+XOM,stock,equity,Energy,36.787,906.805,1.0,True,True,True,0.314,diversified_9
