@@ -1,7 +1,6 @@
 """
 Etap 2: modele autoregresyjne AR / ARX.
-Uruchomienie:
-    python -m scripts.step2_autoregressive --all-presets
+
 """
 
 import argparse
