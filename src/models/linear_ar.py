@@ -1,152 +1,88 @@
+"""Modele AR(p) / ARX(p) na log-zwrotach (OLS), metryki i test Diebolda-Mariano."""
 
-"""
-linear_ar.py
-
-Autoregressive AR(p) model for investment portfolio forecasting.
-
-The module implements:
-- AR(p) model estimated using Ordinary Least Squares (OLS),
-- historical portfolio data acquisition from Yahoo Finance,
-- portfolio value calculation using a buy-and-hold strategy,
-- chronological train/validation/test split (70% / 15% / 15%),
-- one-step-ahead forecasting,
-- forecast evaluation using MAE, RMSE and Directional Accuracy.
-
-The model uses historical portfolio values only.
-Google Trends data is not used.
-
-Run from the main project directory:
-
-    python -m src.models.linear_ar
-"""
-
+from typing import Dict, Optional, Tuple
 import numpy as np
-import statsmodels.api as sm
-import pandas as pd
+from scipy import stats
 
-from config.portfolio_config import PortfolioConfig, FeatureSet
-from src.data.acquisition import DataAcquisition
-from src.data.portfolio_value import calculate_portfolio_value
+
+def evaluate_forecasts(actual: np.ndarray, predicted: np.ndarray, prev_actual: np.ndarray) -> Dict[str, float]:
+    """MAE, RMSE, MAPE [%] i Directional Accuracy [%] (kierunek względem y_{t-1})."""
+    err = actual - predicted
+    da = np.mean(np.sign(actual - prev_actual) == np.sign(predicted - prev_actual)) * 100.0
+    return {
+        "MAE": float(np.mean(np.abs(err))),
+        "RMSE": float(np.sqrt(np.mean(err ** 2))),
+        "MAPE_%": float(np.mean(np.abs(err / actual)) * 100.0),
+        "DA_%": float(da),
+    }
+
+
+def diebold_mariano_test(actual: np.ndarray, pred_base: np.ndarray, pred_cand: np.ndarray) -> Tuple[float, float]:
+    """Test Diebolda-Mariano (DM < 0 oznacza niższy błąd modelu kandydującego)."""
+    d = (actual - pred_cand) ** 2 - (actual - pred_base) ** 2
+    var = float(np.var(d, ddof=1))
+    if var <= 1e-18:
+        return 0.0, 1.0
+    dm = float(np.mean(d) / np.sqrt(var / len(d)))
+    return dm, float(2.0 * stats.t.sf(np.abs(dm), df=len(d) - 1))
+
+
+class NaiveRandomWalk:
+    """Model naiwny (błądzenie losowe): y_hat_t = y_{t-1}."""
+    def predict_range(self, y_full: np.ndarray, start: int, end: int) -> np.ndarray:
+        return np.asarray(y_full, dtype=float)[start - 1 : end - 1].copy()
+
+
+def _log_returns(y: np.ndarray) -> np.ndarray:
+    y = np.asarray(y, dtype=float)
+    return np.r_[np.nan, np.log(y[1:] / y[:-1])]
+
+
+def _design(r: np.ndarray, X: Optional[np.ndarray], idx: np.ndarray, p: int) -> np.ndarray:
+    """Macierz cech dla chwil idx: [1, r_{t-1}..r_{t-p}, X_t]."""
+    cols = [np.ones(len(idx))] + [r[idx - k] for k in range(1, p + 1)]
+    if X is not None:
+        cols += list(np.asarray(X, dtype=float)[idx].T)
+    return np.column_stack(cols)
 
 
 class LinearAR:
-    """Autoregressive AR(p) model estimated using OLS."""
-
-    def __init__(self, p=5):
+    """AR(p) / ARX(p) estymowany OLS na log-zwrotach; prognoza cen: y_t = y_{t-1} * exp(r_hat)."""
+    def __init__(self, p: Optional[int] = None, p_grid=(1, 2, 3, 5, 10)) -> None:
         self.p = p
-        self.model = None
+        self.p_grid = tuple(p_grid)
+        self.selected_p_ = p
+        self.coef_ = None
 
-    def fit(self, y_train, y_val=None, X_train=None, X_val=None):
-        """Fits the model using lagged observations."""
-
-        y = np.asarray(y_train, dtype=float)
-
-        if len(y) <= self.p:
-            raise ValueError("Not enough observations to fit AR model.")
-
-        X = np.array([
-            y[i-self.p:i][::-1]
-            for i in range(self.p, len(y))
-        ])
-
-        target = y[self.p:]
-
-        self.model = sm.OLS(target, sm.add_constant(X)).fit()
-
+    def _fit_p(self, y, X, p: int) -> "LinearAR":
+        r = _log_returns(y)
+        idx = np.arange(p + 1, len(r))  # r[0] to NaN, więc pierwszy użyteczny wiersz ma indeks p+1
+        self.coef_ = np.linalg.lstsq(_design(r, X, idx, p), r[idx], rcond=None)[0]
+        self.selected_p_ = p
         return self
 
-    def predict_one_step(self, y_full, start, X_full=None):
-        """Predicts the next value using the previous p observations."""
+    def fit(self, y_train, y_val=None, X_train=None, X_val=None) -> "LinearAR":
+        """Gdy p=None i podano y_val: dobiera p na walidacji, potem uczy na train+val."""
+        if self.p is not None or y_val is None:
+            return self._fit_p(y_train, X_train, self.p or 5)
 
-        if self.model is None:
-            raise ValueError("Model must be fitted before prediction.")
+        y_tv = np.r_[y_train, y_val]
+        X_tv = None if X_train is None else np.vstack([X_train, X_val])
+        n = len(y_train)
 
+        def val_rmse(p: int) -> float:
+            try:
+                self._fit_p(y_train, X_train, p)
+                pred = [self.predict_one_step(y_tv, i, X_tv) for i in range(n, len(y_tv))]
+                rmse = float(np.sqrt(np.mean((np.asarray(y_val) - pred) ** 2)))
+                return rmse if np.isfinite(rmse) else np.inf
+            except Exception:
+                return np.inf
+
+        return self._fit_p(y_tv, X_tv, min(self.p_grid, key=val_rmse))
+
+    def predict_one_step(self, y_full, start: int, X_full=None) -> float:
+        """Prognoza 1-krokowa dla y[start]."""
         y = np.asarray(y_full, dtype=float)
-
-        if start < self.p or start >= len(y):
-            raise ValueError("Invalid prediction index.")
-
-        lags = y[start-self.p:start][::-1]
-        X = np.r_[1, lags].reshape(1, -1)
-
-        return float(self.model.predict(X)[0])
-
-
-def run_experiment():
-    """Runs the complete AR(p) portfolio forecasting experiment."""
-
-    config = PortfolioConfig(
-        portfolio_id="diversified_9",
-        feature_set=FeatureSet.BASELINE
-    )
-
-    # Download market data
-    acquisition = DataAcquisition(config)
-    ohlcv = acquisition.fetch_ohlcv()
-
-    # Calculate historical portfolio value
-    portfolio = calculate_portfolio_value(
-        ohlcv,
-        config.assets,
-        config.initial_capital
-    )
-
-    y = portfolio.to_numpy(dtype=float)
-
-    # Chronological split: 70% / 15% / 15%
-    n = len(y)
-    train_end = int(n * config.train_frac)
-    val_end = int(n * (config.train_frac + config.val_frac))
-
-    y_train = y[:train_end]
-
-    print("Portfolio:", config.portfolio_id)
-    print("Observations:", n)
-    print("Training:", train_end)
-    print("Validation:", val_end - train_end)
-    print("Test:", n - val_end)
-
-    # Fit AR(5)
-    model = LinearAR(p=5)
-    model.fit(y_train)
-
-    # One-step-ahead predictions
-    predictions = []
-
-    for i in range(val_end, n):
-        predictions.append(
-            model.predict_one_step(y, start=i)
-        )
-
-    predictions = np.asarray(predictions)
-    actual = y[val_end:]
-
-    # Evaluation
-    mae = np.mean(np.abs(actual - predictions))
-    rmse = np.sqrt(np.mean((actual - predictions) ** 2))
-
-    actual_direction = np.sign(np.diff(actual))
-    predicted_direction = np.sign(np.diff(predictions))
-
-    da = np.mean(actual_direction == predicted_direction) * 100
-
-    print(f"MAE: {mae:.4f}")
-    print(f"RMSE: {rmse:.4f}")
-    print(f"Directional Accuracy: {da:.2f}%")
-
-    # Save forecasts
-    results = pd.DataFrame({
-        "Date": portfolio.index[val_end:],
-        "Actual": actual,
-        "Predicted": predictions
-    })
-
-    results.to_csv("results_ar.csv", index=False)
-
-    print("\nResults saved to results_ar.csv")
-
-    return model, results
-
-
-if __name__ == "__main__":
-    run_experiment()
+        feat = _design(_log_returns(y), X_full, np.array([start]), self.selected_p_)
+        return float(y[start - 1] * np.exp((feat @ self.coef_)[0]))
