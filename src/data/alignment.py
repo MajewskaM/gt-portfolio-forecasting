@@ -1,10 +1,11 @@
 """
-Wyrównanie tygodniowych szeregów Google Trends do sesji giełdowych i budowa zbioru danych
-(reguła z sekcji 5.6 i 7.2 raportu):
-  1. lag = 1 tydzień: SVI o etykiecie niedzielnej d_i jest znane dopiero po tygodniu,
-     więc trafia do modelu od poniedziałku tygodnia następnego,
-  2. forward fill na wszystkie sesje tego tygodnia,
-  3. brak interpolacji (interpolacja = wyciek informacji z przyszłości).
+Łączenie danych Google Trends (tygodniowych) z cenami (dziennymi) i budowa zbioru danych.
+
+Zasady (sekcje 5.6 i 7.2 raportu):
+  1. Opóźnienie o 1 tydzień: wartość GT za tydzień jest znana dopiero po jego zakończeniu,
+     więc model dostaje ją od poniedziałku następnego tygodnia.
+  2. Wartość tygodniową powielamy na wszystkie dni sesyjne (forward fill).
+  3. Nie interpolujemy, bo to wprowadziłoby informację z przyszłości.
 """
 
 from dataclasses import dataclass
@@ -25,40 +26,49 @@ class AlignedDataset:
     shares: Dict[str, float]
     single_asset_price: pd.Series
     gt_features: pd.DataFrame
-    train_end: int
-    val_end: int
+    train_end: int # liczba sesji w zbiorze uczącym
+    val_end: int # liczba sesji w uczącym + walidacyjnym
 
 
 def align_gt_to_trading_days(gt_series: Dict[str, pd.Series], trading_index: pd.DatetimeIndex) -> pd.DataFrame:
-    """Lag = 1 tydzień + forward fill (bez interpolacji)."""
-    cols = {}
-    for name, s in gt_series.items():
-        lagged = s.sort_index().astype(float).shift(1)
-        cols[name] = lagged.reindex(lagged.index.union(trading_index)).ffill().reindex(trading_index)
-    return pd.DataFrame(cols, index=trading_index)
+    """Dla każdego dnia sesyjnego bierze ostatnią znaną wartość GT (z opóźnieniem 1 tygodnia)."""
+    result = pd.DataFrame(index=trading_index)
+    for name, series in gt_series.items():
+        delayed = series.sort_index().shift(1) # opóźnienie o 1 tydzień
+        result[name] = delayed.reindex(trading_index, method="ffill") # ostatnia znana wartość
+    return result
 
 
 def build_aligned_dataset(cfg: PortfolioConfig, ohlcv: Dict[str, pd.DataFrame], gt_series: Dict[str, pd.Series]) -> AlignedDataset:
-    """Spójny zbiór z identycznym zakresem dat dla wszystkich wariantów modeli."""
+    """Zbiór danych o tych samych datach dla wszystkich modeli."""
     prices = pd.concat({t: ohlcv[t]["Close"] for t in cfg.tickers}, axis=1).dropna().sort_index()
-    gt_df = align_gt_to_trading_days(gt_series, prices.index)
-    if not gt_df.empty:  # odrzucamy początek bez znanej wartości GT
-        valid = gt_df.notna().all(axis=1)
-        prices, gt_df = prices[valid], gt_df[valid]
+    gt = align_gt_to_trading_days(gt_series, prices.index)
 
-    shares = {t: cfg.initial_capital * w / float(prices[t].iloc[0]) for t, w in cfg.assets.items()}
-    port_val = sum(prices[t] * shares[t] for t in cfg.tickers).rename("Portfolio_Value")
+    # na początku próby GT jeszcze nie ma - te dni odrzucamy
+    if not gt.empty:
+        has_gt = gt.notna().all(axis=1)
+        prices, gt = prices[has_gt], gt[has_gt]
+
+    # buy-and-hold: stała liczba jednostek kupiona pierwszego dnia
+    shares = {t: cfg.initial_capital * w / prices[t].iloc[0] for t, w in cfg.assets.items()}
+    portfolio_value = sum(prices[t] * shares[t] for t in cfg.tickers)
+
     n = len(prices)
     return AlignedDataset(
-        dates=prices.index, portfolio_value=port_val, asset_prices=prices, shares=shares,
-        single_asset_price=prices[cfg.single_ticker], gt_features=gt_df,
-        train_end=int(n * cfg.train_frac), val_end=int(n * (cfg.train_frac + cfg.val_frac)),
+        dates=prices.index,
+        portfolio_value=portfolio_value,
+        asset_prices=prices,
+        shares=shares,
+        single_asset_price=prices[cfg.single_ticker],
+        gt_features=gt,
+        train_end=int(n * cfg.train_frac),
+        val_end=int(n * (cfg.train_frac + cfg.val_frac)),
     )
 
 
-def scale_gt_train_only(gt_df: Optional[pd.DataFrame], train_end: int) -> Optional[np.ndarray]:
-    """Standaryzacja cech GT wyłącznie na zbiorze treningowym (brak wycieku)."""
-    if gt_df is None or gt_df.empty:
+def scale_gt_train_only(gt: Optional[pd.DataFrame], train_end: int) -> Optional[np.ndarray]:
+    """Standaryzacja GT: średnia i odchylenie liczone tylko ze zbioru uczącego."""
+    if gt is None or gt.empty:
         return None
-    arr = gt_df.to_numpy(dtype=float)
-    return StandardScaler().fit(arr[:train_end]).transform(arr)
+    values = gt.to_numpy(dtype=float)
+    return StandardScaler().fit(values[:train_end]).transform(values)
