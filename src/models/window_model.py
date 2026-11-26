@@ -14,7 +14,10 @@ Jak dodać nowy model:
   - klasa musi nazywać się Model i dziedziczyć po WindowModel,
   - ustaw `name`, `grid` (lista słowników; klucz "window" = długość okna W, reszta trafia do make_estimator),
   - napisz make_estimator(params): ma zwrócić obiekt z metodami fit(F, target) i predict(F),
-    np. model ze scikit-learn albo własną klasę (np. sieć neuronową),
+    np. model ze scikit-learn albo własną klasę (np. sieć neuronową).
+    W params są wszystkie ustawienia z grid OPRÓCZ "window"; długość okna jest w self.window_.
+    Ziarno losowości jest w self.seed - przekaż je do modelu (np. random_state=self.seed,
+    torch.manual_seed(self.seed)), żeby wyniki były powtarzalne,
   - jeśli model potrzebuje skalowania danych (np. SVR, sieci), ustaw `scale = True`,
   - uruchom: python -m scripts.run_model --model <nazwa> --synthetic
 

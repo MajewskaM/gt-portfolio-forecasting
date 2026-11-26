@@ -251,7 +251,7 @@ def main():
               "portfolios": portfolios, "synthetic": args.synthetic, "bottom_up": not args.no_bottom_up,
               "grid": load_model_class(args.model).grid}
     with open(os.path.join(out_dir, "config.json"), "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
+        json.dump(config, f, indent=2, ensure_ascii=False, default=str)
 
     print(f"\n=== WYNIKI: {args.model} ({run_id}) -> {out_dir} ===")
     print(summary.round(4).to_string(index=False))

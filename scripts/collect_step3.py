@@ -75,6 +75,8 @@ def compare_with_ar(runs):
             ar_file = prediction_file(ar_row["run_dir"], row)
             if os.path.exists(own_file) and os.path.exists(ar_file):
                 own, ar_pred = pd.read_csv(own_file), pd.read_csv(ar_file)
+                if not own["Date"].astype(str).equals(ar_pred["Date"].astype(str)):
+                    raise SystemExit(f"Różne dni testowe w {own_file} i {ar_file} - porównanie z AR niemożliwe")
                 dm, p = diebold_mariano_test(own["Actual"].to_numpy(), ar_pred["Predicted"].to_numpy(),
                                              own["Predicted"].to_numpy())
                 row["DM_stat_vs_AR"], row["DM_pvalue_vs_AR"] = dm, p

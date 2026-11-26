@@ -32,6 +32,7 @@ class Model(WindowModel):
     grid = [{"window": p} for p in (1, 2, 3, 5, 10)]  # window = rząd p
 
     def make_estimator(self, params):
+        # params = ustawienia z grid bez "window" (okno jest w self.window_), ziarno w self.seed
         return OLS()
 
     def label(self, has_gt):
